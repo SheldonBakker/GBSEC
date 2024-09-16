@@ -1,0 +1,93 @@
+/* Existing styles for nav links */
+.nav-link {
+  color: white;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  padding: 0.7rem;
+  position: relative;
+  transition: color 0.3s ease;
+}
+
+.nav-link::before {
+  content: '';
+  position: absolute;
+  bottom: -0.1rem; /* Slightly adjusted for visual alignment */
+  left: 50%;
+  width: 0;
+  height: 3px;
+  background-color: yellow;
+  transition: width 0.3s ease, left 0.3s ease;
+}
+
+.nav-link:hover::before {
+  width: 100%;
+  left: 0;
+}
+
+.nav-link.active::before {
+  width: 100%;
+  left: 0;
+}
+
+/* Dropdown menu styles */
+.dropdown-menu {
+  display: none; /* Hidden by default */
+  background-color: #333; /* Darker background for contrast */
+  border-radius: 8px; /* Rounded corners */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Enhanced shadow for depth */
+  position: absolute; /* Position relative to .nav-link */
+  top: calc(100% + 0.5rem); /* Position it below the nav-link with extra space */
+  left: 0;
+  width: 220px; /* Slightly wider for better fit */
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden; /* Start hidden */
+  transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease; /* Smooth transitions */
+  transform: translateY(10px); /* Slightly offset to start */
+}
+
+.dropdown-menu.show {
+  display: block; /* Show the dropdown menu */
+  opacity: 1; /* Fully visible */
+  visibility: visible; /* Make visible */
+  transform: translateY(0); /* Move to final position */
+}
+
+/* Dropdown item styles */
+.dropdown-item {
+  color: #f9f9f9; /* Lighter text color for better readability */
+  text-decoration: none;
+  padding: 0.7rem 1.2rem; /* Adjust padding for better spacing */
+  display: block;
+  transition: background-color 0.3s ease, color 0.3s ease, padding-left 0.3s ease; /* Smooth hover effects */
+}
+
+.dropdown-item:hover, .dropdown-item:focus {
+  background-color: #555; /* Slightly lighter background on hover */
+  color: #ffd700; /* Highlight text color on hover */
+  padding-left: 1.4rem; /* Add padding for hover effect */
+  outline: none; /* Remove default outline */
+}
+
+/* Dropdown animation */
+@keyframes slideDown {
+  0% {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+}
