@@ -20,17 +20,17 @@ const AboutUs: React.FC = () => {
           Our technical teams are of the best-qualified and friendliest technicians in the Security Industry. All of our staff members are registered with PSIRA, the governing body of the security industry. They install new alarm systems and are capable of sorting out any enquiries and problems on most alarm systems.
         </p>
         <div className="flex justify-center space-x-4">
-          <a href="/images/manual.pdf" target="_blank" rel="noopener noreferrer">
+          <a href="/documents/PAIA MANUAL REVISED FOR 2023.pdf" target="_blank" rel="noopener noreferrer">
             <button className="bg-red-600 hover:bg-yellow-600 text-white font-bold py-2 px-5 rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-300">
               PAIA Manual
             </button>
           </a>
-          <a href="/images/form2.pdf" target="_blank" rel="noopener noreferrer">
+          <a href="/documents/Form 02 - Request for Access to Record.pdf" target="_blank" rel="noopener noreferrer">
             <button className="bg-black hover:bg-gray-800 text-white font-bold py-2 px-5 rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-300">
               Form 02 Access
             </button>
           </a>
-          <a href="/images/form2.pdf" target="_blank" rel="noopener noreferrer">
+          <a href="/documents/Form 03 - Outcome of request and of fees payable.pdf" target="_blank" rel="noopener noreferrer">
             <button className="bg-yellow-600 hover:bg-red-600 text-white font-bold py-2 px-5 rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-300">
               Form 03 Outcome
             </button>

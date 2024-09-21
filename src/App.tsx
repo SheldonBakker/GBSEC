@@ -11,6 +11,8 @@ import Specialops from './components/Special';
 import Range from './components/Range';
 import RifleScopesAndAccessories from './components/Accessories';
 import AmmunitionPage from './components/Ammunition';
+import AmmunitionEdit from './components/AmmunitionAdmin';
+import AccessoriesAdmin from './components/AccessoriesAdmin'
 
 const App: React.FC = () => {
   return (
@@ -24,8 +26,10 @@ const App: React.FC = () => {
           <Route path="/psira-grades" element={<Psira />} />
           <Route path="/special-op" element={<Specialops />} />
           <Route path="/gunshop/accessories" element={<RifleScopesAndAccessories />} />
+          <Route path="/gunshop/accessories-edit" element={<AccessoriesAdmin  />} />
           <Route path="/gunshop/shooting-range" element={<Range />} />
           <Route path="/gunshop/ammunition" element={<AmmunitionPage />} />
+          <Route path="/gunshop/ammunition-edit" element={<AmmunitionEdit />} />
         </Routes>
       </main>
       <Footer />

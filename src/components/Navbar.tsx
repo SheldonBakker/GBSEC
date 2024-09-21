@@ -10,13 +10,13 @@ const Navbar: React.FC = () => {
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
-    setDropdownOpen(false); // Ensure dropdown is closed when main menu is toggled
+    setDropdownOpen(false); // Close dropdown when toggling menu
   };
 
   const handleLinkClick = (link: string) => {
     if (link !== '/gunshop') {
       setActiveLink(link);
-      setIsOpen(false); // Close the mobile menu when a link is clicked
+      setIsOpen(false); // Close mobile menu when a link is clicked
       setDropdownOpen(false); // Close dropdown if not 'Gun Shop'
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -37,13 +37,14 @@ const Navbar: React.FC = () => {
   ];
 
   return (
-    <nav className="bg-gradient-to-r from-black via-red-900 to-black shadow-lg fixed w-full z-50">
+    <nav className="bg-gradient-to-r from-black via-red-900 to-black shadow-lg fixed w-full z-50"> {/* Increase z-index */}
       <div className="container mx-auto px-6 py-4 flex justify-between items-center">
         <div className="flex items-center space-x-4">
           <img src={Logo} alt="Gordons Bay Security Trust Logo" className="h-12 w-12" />
           <span className="text-2xl font-extrabold text-yellow-500">Gordons Bay Security Trust</span>
         </div>
 
+        {/* Desktop Menu */}
         <div className="hidden md:flex flex-grow justify-center space-x-4">
           {links.map((link) => (
             <div
@@ -60,7 +61,7 @@ const Navbar: React.FC = () => {
                 {link.name}
               </Link>
               {link.dropdown && dropdownOpen && (
-                <div className="dropdown-menu show">
+                <div className="absolute top-full mt-2 bg-white shadow-lg rounded-md p-2 z-50"> {/* Add z-index for dropdown */}
                   <Link
                     to="/gunshop/shooting-range"
                     className="dropdown-item"
@@ -80,7 +81,7 @@ const Navbar: React.FC = () => {
                     className="dropdown-item"
                     onClick={() => handleLinkClick('/gunshop/ammunition')}
                   >
-                    Ammuniton
+                    Ammunition
                   </Link>
                 </div>
               )}
@@ -88,7 +89,8 @@ const Navbar: React.FC = () => {
           ))}
         </div>
 
-        <div className="md:hidden">
+        {/* Mobile Menu Button */}
+        <div className="md:hidden z-50"> {/* Ensure button is in front */}
           <button
             onClick={toggleMenu}
             className="text-white focus:outline-none hover:text-stone-500 transition-all duration-300"
@@ -104,11 +106,12 @@ const Navbar: React.FC = () => {
         </div>
       </div>
 
+      {/* Mobile Menu */}
       <div
-        className={`overflow-hidden transition-transform duration-500 ease-in-out ${isOpen ? 'transform translate-y-0 opacity-100' : 'transform -translate-y-full opacity-0'}`}
-        style={{ height: isOpen ? '100vh' : '0' }}
+        className={`fixed inset-0 bg-black bg-opacity-90 z-40 flex flex-col items-center justify-center transition-transform duration-500 ease-in-out ${isOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'}`} 
+        style={{ transform: isOpen ? 'translateX(0)' : 'translateX(100%)' }}
       >
-        <div className="bg-black py-4 flex flex-col items-center space-y-2 px-6 h-full">
+        <div className="flex flex-col items-center space-y-6">
           {links.map((link) => (
             <div
               key={link.path}
@@ -123,30 +126,30 @@ const Navbar: React.FC = () => {
             >
               <Link
                 to={link.path}
-                className={`nav-link ${activeLink === link.path ? 'active' : ''}`}
+                className={`text-2xl font-semibold text-white ${activeLink === link.path ? 'active' : ''} hover:text-yellow-400 transition-all duration-300`}
                 onClick={() => handleLinkClick(link.path)}
               >
                 {link.name}
               </Link>
               {link.dropdown && dropdownOpen && (
-                <div className="dropdown-menu show">
+                <div className="mt-2 flex flex-col items-center space-y-2">
                   <Link
                     to="/gunshop/shooting-range"
-                    className="dropdown-item"
+                    className="dropdown-item text-lg text-white hover:text-yellow-400 transition-all duration-300"
                     onClick={() => handleLinkClick('/gunshop/shooting-range')}
                   >
                     Shooting Range
                   </Link>
                   <Link
                     to="/gunshop/accessories"
-                    className="dropdown-item"
+                    className="dropdown-item text-lg text-white hover:text-yellow-400 transition-all duration-300"
                     onClick={() => handleLinkClick('/gunshop/accessories')}
                   >
                     Rifle Scopes/Accessories
                   </Link>
                   <Link
                     to="/gunshop/ammunition"
-                    className="dropdown-item"
+                    className="dropdown-item text-lg text-white hover:text-yellow-400 transition-all duration-300"
                     onClick={() => handleLinkClick('/gunshop/ammunition')}
                   >
                     Ammunition

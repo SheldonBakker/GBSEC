@@ -30,7 +30,7 @@ const Footer = () => {
           Contact Us: <a href="tel:0218560214" className="hover:underline">021 856 0214</a>
         </div>
       </div>
-      <div className="text-center py-1 text-xs border-t border-stone-300">
+      <div className="text-center py-1 text-xs">
         Design by <a href="https://www.shikkidesign.co.za/" className="hover:underline text-yellow-500">Shikki Design</a>
       </div>
     </footer>

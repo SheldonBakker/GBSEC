@@ -1,9 +1,25 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const Range: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 pt-24 p-6">
       <div className="container mx-auto py-12 px-4 md:px-8 lg:px-12">
+        
+        {/* Buttons Section (Moved to the Top) */}
+        <div className="flex justify-center gap-6 mb-8">
+          <Link to="/gunshop/ammunition">
+            <button className="bg-red-600 text-white py-3 px-6 rounded-lg shadow-lg hover:bg-yellow-500 transition">
+              Ammunition
+            </button>
+          </Link>
+          <Link to="/gunshop/accessories">
+            <button className="bg-red-600 text-white py-3 px-6 rounded-lg shadow-lg hover:bg-yellow-500 transition">
+              Scopes/Accessories
+            </button>
+          </Link>
+        </div>
+
         {/* Title Section */}
         <h1 className="text-5xl font-extrabold text-center mb-12 text-red-600 tracking-tight">
           Gordon's Bay Indoor Shooting Range
