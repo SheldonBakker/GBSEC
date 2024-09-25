@@ -96,7 +96,7 @@ const ContactInfo: React.FC = () => {
             </form>
           </div>
         </div>
-        <div className="py-10"></div> {/* Extra padding at the bottom */}
+        <div className="py-10"></div>
       </div>
     </section>
   );

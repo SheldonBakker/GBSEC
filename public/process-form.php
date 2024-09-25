@@ -1,27 +1,57 @@
 <?php
+header('Content-Type: application/json');
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Retrieve form data
-    $name = htmlspecialchars(trim($_POST['name']));
-    $email = htmlspecialchars(trim($_POST['email']));
-    $message = htmlspecialchars(trim($_POST['message']));
+    $name = htmlspecialchars(trim($_POST['name']), ENT_QUOTES, 'UTF-8');
+    $email = filter_var(trim($_POST['email']), FILTER_SANITIZE_EMAIL);
+    $message = htmlspecialchars(trim($_POST['message']), ENT_QUOTES, 'UTF-8');
 
-    // Validate the inputs (basic example)
-    if (!empty($name) && !empty($email) && !empty($message) && filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        // Process the form data (e.g., send email, save to database, etc.)
-        $to = "your-email@example.com"; // Replace with your email address
-        $subject = "New Contact Form Submission";
-        $body = "Name: $name\nEmail: $email\nMessage:\n$message";
-        $headers = "From: $email";
+    // Initialize an array for errors
+    $errors = [];
 
+    // Validate name
+    if (empty($name)) {
+        $errors[] = "Name is required.";
+    }
+
+    // Validate email
+    if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors[] = "A valid email address is required.";
+    }
+
+    // Validate message
+    if (empty($message)) {
+        $errors[] = "Message is required.";
+    }
+
+    // If no validation errors, proceed with further processing (e.g., sending email)
+    if (empty($errors)) {
+        // Prepare email headers and body
+        $to = "info@gordonsbaysecurity.co.za";  // Your destination email
+        $subject = "New Contact Form Submission from $name";
+        $body = "You have received a new message from the contact form.\n\n"
+              . "Name: $name\n"
+              . "Email: $email\n"
+              . "Message:\n$message";
+        $headers = "From: $email\r\nReply-To: $email";
+
+        // Try to send the email
         if (mail($to, $subject, $body, $headers)) {
-            echo "Message sent successfully!";
+            // Respond with success message
+            echo json_encode(["status" => "success", "message" => "Your message was sent successfully."]);
         } else {
-            echo "Failed to send message. Please try again.";
+            // Respond with failure message
+            http_response_code(500);
+            echo json_encode(["status" => "error", "message" => "Failed to send your message. Please try again later."]);
         }
     } else {
-        echo "Please fill in all fields correctly.";
+        // Respond with validation errors
+        http_response_code(400);
+        echo json_encode(["status" => "error", "errors" => $errors]);
     }
 } else {
-    echo "Invalid request method.";
+    // Respond with method not allowed error
+    http_response_code(405);
+    echo json_encode(["status" => "error", "message" => "Invalid request method."]);
 }
 ?>

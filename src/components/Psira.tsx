@@ -1,7 +1,47 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion'; // Import Framer Motion
 
 const Psira: React.FC = () => {
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        subject: '',
+        message: ''
+    });
+    const [status, setStatus] = useState({ submitting: false, success: false, error: '' });
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value
+        });
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setStatus({ submitting: true, success: false, error: '' });
+
+        try {
+            const response = await fetch('contact.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams(formData as any)
+            });
+
+            const result = await response.text();
+            if (result === 'success') {
+                setStatus({ submitting: false, success: true, error: '' });
+                setFormData({ name: '', email: '', subject: '', message: '' }); // Clear form on success
+            } else {
+                setStatus({ submitting: false, success: false, error: result });
+            }
+        } catch (error) {
+            setStatus({ submitting: false, success: false, error: 'Something went wrong. Please try again.' });
+        }
+    };
+
     return (
         <div className="pt-24 md:pt-32 pb-24 px-6 md:px-16 space-y-12">
             {/* Header Section */}
@@ -41,25 +81,61 @@ const Psira: React.FC = () => {
                 transition={{ duration: 1.4 }}
             >
                 <h2 className="text-3xl md:text-4xl font-semibold text-red-700 border-b-2 border-red-700 pb-2">Contact The Academy</h2>
-                <form className="mt-4 space-y-4">
+                <form className="mt-4 space-y-4" onSubmit={handleSubmit}>
                     <label className="block">
                         <span className="text-gray-700">Name *</span>
-                        <input type="text" className="form-input mt-1 block w-full border border-gray-300 rounded-md p-2 focus:border-red-500 focus:ring-0 transition-colors duration-300" required />
+                        <input 
+                            type="text" 
+                            name="name"
+                            value={formData.name}
+                            onChange={handleInputChange}
+                            className="form-input mt-1 block w-full border border-gray-300 rounded-md p-2 focus:border-red-500 focus:ring-0 transition-colors duration-300"
+                            required
+                        />
                     </label>
                     <label className="block">
                         <span className="text-gray-700">Email *</span>
-                        <input type="email" className="form-input mt-1 block w-full border border-gray-300 rounded-md p-2 focus:border-red-500 focus:ring-0 transition-colors duration-300" required />
+                        <input 
+                            type="email"
+                            name="email"
+                            value={formData.email}
+                            onChange={handleInputChange}
+                            className="form-input mt-1 block w-full border border-gray-300 rounded-md p-2 focus:border-red-500 focus:ring-0 transition-colors duration-300"
+                            required
+                        />
                     </label>
                     <label className="block">
                         <span className="text-gray-700">Subject</span>
-                        <input type="text" className="form-input mt-1 block w-full border border-gray-300 rounded-md p-2 focus:border-red-500 focus:ring-0 transition-colors duration-300" />
+                        <input 
+                            type="text" 
+                            name="subject"
+                            value={formData.subject}
+                            onChange={handleInputChange}
+                            className="form-input mt-1 block w-full border border-gray-300 rounded-md p-2 focus:border-red-500 focus:ring-0 transition-colors duration-300"
+                        />
                     </label>
                     <label className="block">
                         <span className="text-gray-700">Message *</span>
-                        <textarea className="form-textarea mt-1 block w-full border border-gray-300 rounded-md p-2 focus:border-red-500 focus:ring-0 transition-colors duration-300" rows={4} required></textarea>
+                        <textarea
+                            name="message"
+                            value={formData.message}
+                            onChange={handleInputChange}
+                            className="form-textarea mt-1 block w-full border border-gray-300 rounded-md p-2 focus:border-red-500 focus:ring-0 transition-colors duration-300"
+                            rows={4}
+                            required
+                        ></textarea>
                     </label>
-                    <button type="submit" className="bg-red-700 text-white py-2 px-4 rounded hover:bg-yellow-600 transition-colors duration-300">Send</button>
+                    <button
+                        type="submit"
+                        className="bg-red-700 text-white py-2 px-4 rounded hover:bg-yellow-600 transition-colors duration-300"
+                        disabled={status.submitting}
+                    >
+                        {status.submitting ? 'Sending...' : 'Send'}
+                    </button>
                 </form>
+
+                {status.success && <p className="mt-4 text-green-600">Message sent successfully!</p>}
+                {status.error && <p className="mt-4 text-red-600">{status.error}</p>}
             </motion.section>
 
             {/* Grades Section */}
@@ -81,14 +157,8 @@ const Psira: React.FC = () => {
                 <p className="mt-4 text-lg text-gray-700">
                     R150 Class booking fees. This is non-refundable and if you do not pitch up for the class or let us know 24 hours before the time that you will not be attending the class, you will need to pay another R100 for another booking.
                 </p>
-                <p className="mt-4 text-lg text-gray-700">
-                    In order for you to get to the next level, you will need to do the level just above it. E.g. If you need a grade C certificate as you wish to become an Armed Response Officer, you will need to do Grade E and achieve it in order to do Grade D. Once you have done the Grade D, then you can do Grade C. Once you have the Grade C, you can then apply for the Armed Response grading.
-                </p>
-                <p className="mt-4 text-lg text-gray-700">
-                    The only thing to remember is that you do not have to do Armed Response in order to do B and A, but you must have C to do B and then B to do A.
-                </p>
             </motion.section>
-
+            
             {/* Process Section */}
             <motion.section 
                 initial={{ opacity: 0, y: 20 }}
@@ -97,20 +167,12 @@ const Psira: React.FC = () => {
             >
                 <h2 className="text-3xl md:text-4xl font-semibold text-red-700 border-b-2 border-red-700 pb-2">Process</h2>
                 <ol className="list-decimal pl-6 mt-4 space-y-4 text-lg text-gray-700">
-                    <li>Purchase the manuals from our office at reception for the course you want to do.</li>
-                    <li>Take the manuals home, complete the tests inside the manual in black pen at home.</li>
-                    <li>When you purchase the manuals, you will be given a date for the next class available.</li>
-                    <li>On this day, bring your ID book as well as the completed tests with to the office.</li>
-                    <li>Your open book test will be marked and if you pass that, you will write a closed book exam.</li>
-                    <li>Your closed book exam will then be marked, and if you pass that, you will move on to your practical evaluation.</li>
-                    <li>If you pass the practical evaluation as well as both your exams, you will not receive a certificate immediately, but the following week as soon as your course report has been submitted.</li>
+                    <li>Purchase the manuals from our office at Gordon's Bay Security.</li>
+                    <li>Study the material and complete the assignments.</li>
+                    <li>Once you've completed the material, contact us to arrange a time and date to come for your tests.</li>
+                    <li>Get your course report, which will be submitted to PSIRA.</li>
+                    <li>PSIRA will register you and issue your PSIRA card.</li>
                 </ol>
-                <p className="mt-4 text-lg text-gray-700">
-                    For any queries, please contact our offices and speak to Matthew W Williams or email him at <a href="mailto:gunshop@gbsec.co.za" className="text-red-700 hover:underline">gunshop@gbsec.co.za</a>.
-                </p>
-                <p className="mt-4 text-lg text-gray-700">
-                    Alternatively, you can use our Contact facility below for any queries.
-                </p>
             </motion.section>
         </div>
     );

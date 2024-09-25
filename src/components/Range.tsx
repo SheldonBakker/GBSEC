@@ -9,12 +9,12 @@ const Range: React.FC = () => {
         {/* Buttons Section (Moved to the Top) */}
         <div className="flex justify-center gap-6 mb-8">
           <Link to="/gunshop/ammunition">
-            <button className="bg-red-600 text-white py-3 px-6 rounded-lg shadow-lg hover:bg-yellow-500 transition">
+            <button className="bg-red-600 text-white py-3 px-6 rounded-lg shadow-lg hover:bg-stone-700 transition">
               Ammunition
             </button>
           </Link>
           <Link to="/gunshop/accessories">
-            <button className="bg-red-600 text-white py-3 px-6 rounded-lg shadow-lg hover:bg-yellow-500 transition">
+            <button className="bg-red-600 text-white py-3 px-6 rounded-lg shadow-lg hover:bg-stone-700 transition">
               Scopes/Accessories
             </button>
           </Link>
