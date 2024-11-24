@@ -9,8 +9,13 @@
   letter-spacing: 1.2px; /* Spaced out letters for a sleek look */
 }
 
+/* Prevent menu items from wrapping */
+.nav-link {
+  white-space: nowrap;
+}
+
 .nav-link::before {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -0.1rem; /* Adjust for better visual alignment */
   left: 50%;
@@ -64,14 +69,16 @@
 
 /* Dropdown item styles */
 .dropdown-item {
-  color: black; /* Light text color for visibility */
+  color: white; /* Light text color for visibility */
   text-decoration: none;
   padding: 0.7rem 1.2rem;
   display: block;
-  transition: background-color 0.3s ease, color 0.3s ease, padding-left 0.3s ease; /* Smooth hover effects */
+  transition: background-color 0.3s ease, color 0.3s ease,
+    padding-left 0.3s ease; /* Smooth hover effects */
 }
 
-.dropdown-item:hover, .dropdown-item:focus {
+.dropdown-item:hover,
+.dropdown-item:focus {
   background-color: #555; /* Lighten background on hover */
   color: white; /* Golden yellow on hover */
   padding-left: 1.4rem; /* Indent on hover */
@@ -149,7 +156,12 @@
 
 /* General Styling */
 nav {
-  background: linear-gradient(to right, #000, #600000, #000); /* Modern gradient */
+  background: linear-gradient(
+    to right,
+    #000,
+    #600000,
+    #000
+  ); /* Modern gradient */
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
 }
 

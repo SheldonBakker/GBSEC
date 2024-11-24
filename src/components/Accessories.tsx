@@ -1,130 +1,258 @@
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { supabase } from "../supabaseClient";
+import AccessoryModal from "./AccessoryModal"; // Modal component for adding/editing accessories
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { useNavigate } from "react-router-dom";
 
-const RifleScopesAndAccessories = () => {
-  const [searchTerm, setSearchTerm] = useState('');
+interface Accessory {
+  id?: number;
+  name: string;
+  price: string;
+}
 
-  const products = [
-    { model: 'H1-030940-T3', type: 'Riflescope', tube: '25mm', description: '3-9x40mm', reticle: 'T3', price: 'R 4 900.00' },
-    { model: 'H1-041250-T3', type: 'Riflescope', tube: '25mm', description: '4-12x50mm', reticle: 'T3', price: 'R 5 800.00' },
-    { model: 'H1-351444-T3', type: 'Riflescope', tube: '25mm', description: '3.5-14x44mm SF', reticle: 'T3', price: 'R 6 800.00' },
-    { model: 'H2-041642-T4', type: 'Riflescope', tube: '25mm', description: '4-16x42mm SF', reticle: 'T4', price: 'R 10 900.00' },
-    { model: 'V1-251550-D2', type: 'Riflescope', tube: '30mm', description: '2.5-15x50mm', reticle: 'D2 IR', price: 'R 9 500.00' },
-    { model: 'V1-251550-T3', type: 'Riflescope', tube: '30mm', description: '2.5-15x50mm', reticle: 'T3 IR', price: 'R 9 500.00' },
-    { model: 'V1-052550-T3', type: 'Riflescope', tube: '30mm', description: '5-25x50mm', reticle: 'T3 IR Zerostop', price: 'R 10 900.00' },
-    { model: 'V1-052550-T9', type: 'Riflescope', tube: '30mm', description: '5-25x50mm', reticle: 'T9 FFP IR', price: 'R 14 600.00' },
-    { model: 'VH-062450-T5', type: 'Riflescope', tube: '30mm', description: '6-24x50mm', reticle: 'T5', price: 'R 15 000.00' },
-    { model: 'VH-031642-T8', type: 'Riflescope', tube: '30mm', description: '3-16x42mm', reticle: 'T8 FFP IR', price: 'R 17 900.00' },
-    { model: 'VH-042050-T8', type: 'Riflescope', tube: '30mm', description: '4-20x50mm', reticle: 'T8 FFP IR', price: 'R 19 900.00' },
-    { model: 'AR-010824-T7', type: 'Riflescope', tube: '30mm', description: '1-8x24mm IR', reticle: 'T7', price: 'R 11 200.00' },
-    { model: 'OPS-053056-T9', type: 'Riflescope', tube: '34mm', description: '5-30x56mm', reticle: 'T9 FFP IR', price: 'R 29 900.00' },
-    { model: 'RX-2403', type: 'Red Dot – Reflex', tube: '-', description: '1x24mm', reticle: '3 MOA Dot', price: 'R 5 490.00' },
-    { model: 'RD-0130', type: 'Red Dot', tube: '30mm', description: '1x30mm', reticle: '3 MOA Dot', price: 'R 3 950.00' },
-    { model: 'RD-0120', type: 'Red Dot', tube: '-', description: '1x20mm', reticle: '3 MOA Dot', price: 'R 4 600.00' },
-  ];
-
-  const accessories = [
-    { name: 'Rudolph Ear Protection – Passive', price: 'R 395.00' },
-    { name: 'Rudolph Ear Protection – Electronic', price: 'R 1 250.00' },
-    { name: 'Rudolph 6-9" Pivot Bipod', price: 'R 1 190.00' },
-    { name: 'Rudolph 9-13" Pivot Bipod', price: 'R 1 390.00' },
-    { name: 'Rudolph Guncoat – Brown', price: 'R 420.00' },
-    { name: 'Rudolph PowerLever', price: 'R 650.00' },
-    { name: 'Rudolph Folding Pocket Knife', price: 'R 695.00' },
-    { name: 'Rudolph ZeroSet Ring - T1 SFP model', price: 'R 400.00' },
-    { name: 'Rudolph PH Shooting Sticks', price: 'R 2 400.00' },
-    { name: 'Rudolph Tactical Bag - Kryptek Raid', price: 'R 1 300.00' },
-  ];
-
-  const filteredProducts = products.filter(product => 
-    product.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.tube.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.reticle.toLowerCase().includes(searchTerm.toLowerCase())
+const Accessories: React.FC = () => {
+  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [accessories, setAccessories] = useState<Accessory[]>([]);
+  const [filteredAccessories, setFilteredAccessories] = useState<Accessory[]>(
+    []
   );
-
-  const filteredAccessories = accessories.filter(accessory =>
-    accessory.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const [loading, setLoading] = useState<boolean>(true);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [selectedAccessory, setSelectedAccessory] = useState<Accessory | null>(
+    null
   );
+  const [isUserSignedIn, setIsUserSignedIn] = useState<boolean>(false); // State for user authentication
+
+  // Fetch accessories from Supabase
+  const fetchAccessories = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.from("accessories").select("*");
+
+      if (error) {
+        toast.error("Error fetching accessories.");
+      } else {
+        setAccessories(data || []);
+        setFilteredAccessories(data || []);
+      }
+    } catch (error) {
+      toast.error("Error fetching accessories.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const fetchSession = async () => {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error("Error fetching session:", error);
+        setIsUserSignedIn(false);
+      } else {
+        setIsUserSignedIn(!!data?.session);
+      }
+    };
+
+    fetchSession();
+    fetchAccessories();
+  }, []);
+
+  // Handle search functionality
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const term = event.target.value.toLowerCase();
+    setSearchTerm(term);
+    if (term) {
+      setFilteredAccessories(
+        accessories.filter((accessory) =>
+          accessory.name.toLowerCase().includes(term)
+        )
+      );
+    } else {
+      setFilteredAccessories(accessories);
+    }
+  };
+
+  // Handle edit functionality
+  const handleEdit = (accessory: Accessory) => {
+    if (isUserSignedIn) {
+      setSelectedAccessory(accessory);
+      setIsModalOpen(true);
+    } else {
+      toast.error("You must be signed in to edit.");
+    }
+  };
+
+  // Handle form submission for adding or editing accessories
+  const handleSubmit = async (accessory: Accessory) => {
+    if (!accessory.name || !accessory.price) {
+      toast.error("All fields are required.");
+      return;
+    }
+
+    try {
+      if (accessory.id) {
+        const { error } = await supabase
+          .from("accessories")
+          .update({
+            name: accessory.name,
+            price: accessory.price,
+          })
+          .eq("id", accessory.id);
+
+        if (error) {
+          toast.error("Error updating accessory.");
+        } else {
+          toast.success("Accessory updated successfully!");
+          fetchAccessories();
+        }
+      } else {
+        const { error } = await supabase
+          .from("accessories")
+          .insert([accessory]);
+
+        if (error) {
+          toast.error("Error adding accessory.");
+        } else {
+          toast.success("Accessory added successfully!");
+          fetchAccessories();
+        }
+      }
+    } catch (error) {
+      toast.error("Error processing request.");
+    }
+  };
 
   return (
-    <div className="container mx-auto px-4 py-12 bg-gray-100 pt-24 pb-24">
-      {/* Page Description */}
-      <section className="mb-8 text-center">
-        <h1 className="text-4xl font-extrabold text-gray-800 mb-4">Rifle Scopes and Accessories</h1>
-        <p className="text-lg text-gray-600">
-          Welcome to our comprehensive catalog of Rudolph rifle scopes, red dot sights, binoculars, rangefinders, and accessories. 
-          Whether you're looking for the perfect scope for your next hunting trip or high-quality accessories for your shooting gear, 
-          we have a variety of options to suit your needs. Explore our premium selection below.
-        </p>
-      </section>
+    <div className="bg-white text-gray-800 py-24 px-6 sm:px-12 lg:px-24 pb-40">
+      <h1 className="text-3xl font-bold mb-6 text-center">Accessories</h1>
 
-      {/* Search Input */}
-      <section className="mb-8 text-center">
-        <input 
-          type="text" 
-          placeholder="Search by model, tube, description, reticle..."
-          className="p-2 w-full max-w-md border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+      {/* Navigation Buttons */}
+      <div className="flex justify-center space-x-4 mb-6">
+        <button
+          onClick={() => navigate("/gunshop/scopes")} // Navigate to Scopes page
+          className="bg-red-500 text-white p-2 rounded-lg transition-transform transform hover:scale-105 hover:opacity-80 duration-300 hover:bg-stone-600"
+        >
+          Go to Scopes
+        </button>
+
+        <button
+          onClick={() => navigate("/gunshop/ammunition")} // Navigate to Accessories page
+          className="bg-red-500 text-white p-2 rounded-lg transition-transform transform hover:scale-105 hover:opacity-80 duration-300 hover:bg-stone-600"
+        >
+          Go to Ammunition
+        </button>
+      </div>
+
+      <div className="mb-6">
+        <input
+          type="text"
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={handleSearch}
+          placeholder="Search for accessories..."
+          className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
         />
-      </section>
+      </div>
 
-      {/* Riflescopes Section */}
-      <section className="mb-12">
-        <h2 className="text-3xl font-bold mb-6 text-gray-700">Rudolph Scopes</h2>
-        <div className="overflow-x-auto bg-white shadow-md rounded-lg">
-          <table className="w-full table-auto border-collapse">
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="w-12 h-12 border-4 border-dashed rounded-full animate-spin border-red-500"></div>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          {filteredAccessories.length > 0 ? (
+            <div className="block md:hidden">
+              {/* Mobile View */}
+              {filteredAccessories.map((accessory) => (
+                <div
+                  key={accessory.id}
+                  className="bg-white shadow-md rounded-lg p-4 mb-4 border border-gray-300"
+                >
+                  <h2 className="font-bold text-lg">{accessory.name}</h2>
+                  <p>Price: R {accessory.price}</p>
+                  <button
+                    onClick={() => handleEdit(accessory)}
+                    className={`mt-2 bg-red-500 text-white p-2 rounded-lg ${
+                      isUserSignedIn
+                        ? "hover:bg-stone-600 hover:scale-105"
+                        : "opacity-50 cursor-not-allowed"
+                    }`}
+                    disabled={!isUserSignedIn}
+                  >
+                    Edit
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-gray-500">No accessories found.</p>
+          )}
+
+          <table className="min-w-full hidden md:table bg-white border border-gray-300 rounded-lg shadow-lg">
             <thead>
-              <tr className="bg-gray-200 text-gray-800">
-                <th className="p-4 text-left">Model</th>
-                <th className="p-4 text-left">Type</th>
-                <th className="p-4 text-left">Tube</th>
-                <th className="p-4 text-left">Description</th>
-                <th className="p-4 text-left">Reticle</th>
-                <th className="p-4 text-left">Price</th>
+              <tr className="bg-gray-200 text-gray-700">
+                <th className="py-3 px-4 border-b">Name</th>
+                <th className="py-3 px-4 border-b">Price</th>
+                <th className="py-3 px-4 border-b">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredProducts.map((product, index) => (
-                <tr key={index} className={`border-t ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} hover:bg-gray-100`}>
-                  <td className="p-4">{product.model}</td>
-                  <td className="p-4">{product.type}</td>
-                  <td className="p-4">{product.tube}</td>
-                  <td className="p-4">{product.description}</td>
-                  <td className="p-4">{product.reticle}</td>
-                  <td className="p-4 font-semibold text-gray-700">{product.price}</td>
+              {filteredAccessories.map((accessory, index) => (
+                <tr
+                  key={accessory.id}
+                  className={`text-gray-700 ${
+                    index % 2 === 0 ? "bg-gray-50" : "bg-white"
+                  }`}
+                >
+                  <td className="py-3 px-4 border-b">{accessory.name}</td>
+                  <td className="py-3 px-4 border-b">R {accessory.price}</td>
+                  <td className="py-3 px-4 border-b">
+                    <button
+                      onClick={() => handleEdit(accessory)}
+                      className={`text-red-500 p-2 rounded-lg ${
+                        isUserSignedIn
+                          ? "hover:underline"
+                          : "opacity-50 cursor-not-allowed"
+                      }`}
+                      disabled={!isUserSignedIn} // Disable for unauthorized users
+                    >
+                      Edit
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-      </section>
+      )}
 
-      {/* Accessories Section */}
-      <section>
-        <h2 className="text-3xl font-bold mb-6 text-gray-700">Accessories</h2>
-        <div className="bg-white shadow-md rounded-lg">
-          <ul className="divide-y divide-gray-200">
-            {filteredAccessories.map((accessory, index) => (
-              <li key={index} className={`p-4 ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} hover:bg-gray-100`}>
-                <div className="flex justify-between">
-                  <span className="text-gray-800">{accessory.name}</span>
-                  <span className="font-semibold text-gray-700">{accessory.price}</span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
+      <button
+        onClick={() => {
+          setSelectedAccessory(null);
+          setIsModalOpen(true);
+        }}
+        className={`bg-red-500 text-white p-2 rounded-lg mt-4 transform transition-all duration-300 ease-in-out ${
+          isUserSignedIn
+            ? "hover:bg-stone-600 hover:scale-105 hover:opacity-90"
+            : "opacity-50 cursor-not-allowed"
+        }`}
+        disabled={!isUserSignedIn} // Disable button if user is not signed in
+      >
+        Add New Accessory
+      </button>
 
-      {/* Contact Email */}
-      <section className="mt-12 text-center">
-        <p className="text-lg text-gray-600">
-          Email <a href="mailto:gunshop@gbsec.co.za" className="text-red-500 underline">gunshop@gbsec.co.za</a> with any orders that you would like to place.
-        </p>
-      </section>
+      <AccessoryModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        accessory={selectedAccessory}
+        onSubmit={handleSubmit}
+        isUserSignedIn={isUserSignedIn} // Pass authentication status to the modal
+      />
+
+      <ToastContainer />
     </div>
   );
 };
 
-export default RifleScopesAndAccessories;
+export default Accessories;

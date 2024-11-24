@@ -1,19 +1,39 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
-import { isAuthenticated } from '../utils/auth';
+import React, { useState, useEffect } from "react";
+import { Route, Navigate, Params } from "react-router-dom"; // Ensure RouteProps is imported correctly
+import { supabase } from "../supabaseClient"; // Import your Supabase client
+import { Session } from "@supabase/supabase-js";
 
 interface ProtectedRouteProps {
-  children: JSX.Element;
+  element: React.ReactNode;
+  params: Params;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  if (!isAuthenticated()) {
-    // If the user is not authenticated, redirect to the login page
-    return <Navigate to="/login" />;
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  element,
+  ...rest
+}) => {
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      setSession(data.session);
+      setLoading(false);
+    };
+    fetchSession();
+  }, []);
+
+  if (loading) {
+    return <div>Loading...</div>; // Optional loading state
   }
 
-  // Otherwise, render the child component (protected page)
-  return children;
+  return (
+    <Route
+      {...rest}
+      element={session ? element : <Navigate to="/login" replace />}
+    />
+  );
 };
 
 export default ProtectedRoute;

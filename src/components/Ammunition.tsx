@@ -1,84 +1,141 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from "react";
+import { supabase } from "../supabaseClient";
+import AmmunitionModal from "./AmmunitionModal";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { useNavigate } from "react-router-dom"; // Import useNavigate for navigation
 
-// Define the Ammunition interface
 interface Ammunition {
+  id?: number;
   type: string;
   stock: string;
   price: string;
 }
 
-const ammunitionData: Ammunition[] = [
-  { type: '.177 Pellet', stock: 'No Stock', price: 'R0,00' },
-  { type: '.22 Long', stock: 'In Stock', price: 'R165,00' },
-  { type: '.22 High Velocity', stock: 'No Stock', price: 'R0,00' },
-  { type: '.22 Hornet (45g) SP', stock: 'In Stock', price: 'R420,00' },
-  { type: '6.35 (FMJ)', stock: 'In Stock', price: 'R525,00' },
-  { type: '6.35 Hollow Points', stock: 'No Stock', price: 'R0,00' },
-  { type: '7.65 (73g FMJ)', stock: 'In Stock', price: 'R475,00' },
-  { type: '7.65 Hollow Points', stock: 'No Stock', price: 'R0,00' },
-  { type: '9mmK (92g FMJ)', stock: 'In Stock', price: 'R490,00' },
-  { type: '9mmK Hollow Points', stock: 'No Stock', price: 'R0,00' },
-  { type: '9mm (115g FMJ)', stock: 'In Stock', price: 'R400,00' },
-  { type: '9mm Hollow Points', stock: 'No Stock', price: 'R0,00' },
-  { type: '38Spl (158g) JSP', stock: 'In Stock', price: 'R550,00' },
-  { type: '38Spl Hollow Points', stock: 'No Stock', price: 'R0,00' },
-  { type: '357 (158g) JSP', stock: 'In Stock', price: 'R630,00' },
-  { type: '40 S&W (180g FMJ)', stock: 'In Stock', price: 'R610,00' },
-  { type: '44 (FMJ)', stock: 'No Stock', price: 'R0,00' },
-  { type: '44 Hollow Points', stock: 'No Stock', price: 'R0,00' },
-  { type: '45 ACP (230g FMJ)', stock: 'In Stock', price: 'R650,00' },
-  { type: '222 REM (50g SP)', stock: 'In Stock', price: 'R472,00' },
-  { type: '222 (???g)', stock: 'No Stock', price: 'R0,00' },
-  { type: '22-250 REM (55g SP)', stock: 'In Stock', price: 'R574,00' },
-  { type: '22-250 (???g)', stock: 'No Stock', price: 'R0,00' },
-  { type: '223 REM (55g SP)', stock: 'In Stock', price: 'R516,00' },
-  { type: '223 REM (55g SP) P&P', stock: 'No Stock', price: 'R0,00' },
-  { type: '243 WIN (100g SP)', stock: 'In Stock', price: 'R474,00' },
-  { type: '243 (???g)', stock: 'No Stock', price: 'R0,00' },
-  { type: '270 WIN (150g SP)', stock: 'In Stock', price: 'R816,00' },
-  { type: '270 WIN (130g SP)', stock: 'In Stock', price: 'R832,00' },
-  { type: '7x57 (???g)', stock: 'No Stock', price: 'R0,00' },
-  { type: '300 WIN (180g)', stock: 'In Stock', price: 'R1214,00' },
-  { type: '300 (???g)', stock: 'No Stock', price: 'R0,00' },
-  { type: '303 (???g)', stock: 'No Stock', price: 'R0,00' },
-  { type: '308 WIN (150g)', stock: 'In Stock', price: 'R654,00' },
-  { type: '308 WIN (180g SP)', stock: 'In Stock', price: 'R674,00' },
-  { type: '30-06 PRG (150g)', stock: 'In Stock', price: 'R652,00' },
-  { type: '30-06 PRG (180g SP)', stock: 'In Stock', price: 'R672,00' },
-  { type: '375 (???g)', stock: 'No Stock', price: 'R0,00' },
-  { type: '12G - 7,5', stock: 'No Stock', price: 'R0,00' },
-  { type: '12G - AAA', stock: 'No Stock', price: 'R0,00' },
-  { type: '12G - SSG', stock: 'No Stock', price: 'R0,00' },
-  { type: '410 Rounds', stock: 'No Stock', price: 'R0,00' },
-  { type: '6.5 Rounds', stock: 'No Stock', price: 'R0,00' },
-];
-
 const AmmunitionPage: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  const [filteredData, setFilteredData] = useState<Ammunition[]>(ammunitionData);
+  const navigate = useNavigate(); // Initialize useNavigate
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [ammunitionData, setAmmunitionData] = useState<Ammunition[]>([]);
+  const [filteredData, setFilteredData] = useState<Ammunition[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [selectedAmmo, setSelectedAmmo] = useState<Ammunition | null>(null);
+  const [isUserSignedIn, setIsUserSignedIn] = useState<boolean>(false);
+
+  const fetchAmmunitionData = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.from("ammunition").select("*");
+
+      if (error) {
+        toast.error("Error fetching ammunition data.");
+      } else {
+        setAmmunitionData(data || []);
+        setFilteredData(data || []);
+      }
+    } catch (error) {
+      toast.error("Error fetching ammunition data.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const fetchSession = async () => {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error("Error fetching session:", error);
+        setIsUserSignedIn(false);
+      } else {
+        setIsUserSignedIn(!!data?.session);
+      }
+    };
+
+    fetchSession();
+    fetchAmmunitionData();
+  }, []);
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const term = event.target.value.toLowerCase();
     setSearchTerm(term);
     if (term) {
       setFilteredData(
-        ammunitionData.filter((ammo) =>
-          ammo.type.toLowerCase().includes(term)
-        )
+        ammunitionData.filter((ammo) => ammo.type.toLowerCase().includes(term))
       );
     } else {
       setFilteredData(ammunitionData);
     }
   };
 
-  // Format price to R currency format
-  const formatCurrency = (price: string): string => {
-    return price.replace(',', '.');
+  const handleEdit = (ammo: Ammunition) => {
+    if (isUserSignedIn) {
+      setSelectedAmmo(ammo);
+      setIsModalOpen(true);
+    } else {
+      toast.error("You must be signed in to edit.");
+    }
+  };
+
+  const handleSubmit = async (ammo: Ammunition) => {
+    if (!ammo.type || !ammo.stock || !ammo.price) {
+      toast.error("All fields are required.");
+      return;
+    }
+
+    try {
+      if (ammo.id) {
+        const { error } = await supabase
+          .from("ammunition")
+          .update({
+            type: ammo.type,
+            stock: ammo.stock,
+            price: ammo.price,
+          })
+          .eq("id", ammo.id);
+
+        if (error) {
+          toast.error("Error updating ammunition.");
+        } else {
+          toast.success("Ammunition updated successfully!");
+          fetchAmmunitionData();
+        }
+      } else {
+        const { error } = await supabase.from("ammunition").insert([ammo]);
+
+        if (error) {
+          toast.error("Error adding ammunition.");
+        } else {
+          toast.success("Ammunition added successfully!");
+          fetchAmmunitionData();
+        }
+      }
+    } catch (error) {
+      toast.error("Error processing request.");
+    }
   };
 
   return (
-    <div className="container mx-auto px-4 py-10 pt-24 pb-24">
-      <h1 className="text-3xl font-bold mb-6 text-center">Ammunition In Stock</h1>
+    <div className="bg-white text-gray-800 py-24 px-6 sm:px-12 lg:px-24 pb-40">
+      <h1 className="text-3xl font-bold mb-6 text-center">Ammunition</h1>
+
+      {/* Navigation Buttons */}
+      <div className="flex justify-center space-x-4 mb-6">
+        <button
+          onClick={() => navigate("/gunshop/scopes")} // Navigate to Scopes page
+          className="bg-red-500 text-white p-2 rounded-lg transition-transform transform hover:scale-105 hover:opacity-80 duration-300 hover:bg-stone-600"
+        >
+          Go to Scopes
+        </button>
+
+        <button
+          onClick={() => navigate("/gunshop/accessories")} // Navigate to Accessories page
+          className="bg-red-500 text-white p-2 rounded-lg transition-transform transform hover:scale-105 hover:opacity-80 duration-300 hover:bg-stone-600"
+        >
+          Go to Accessories
+        </button>
+      </div>
+
+      {/* Search Bar */}
       <div className="mb-6">
         <input
           type="text"
@@ -88,37 +145,118 @@ const AmmunitionPage: React.FC = () => {
           className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
         />
       </div>
-      <div className="overflow-x-auto">
-        {filteredData.length > 0 ? (
-          <table className="min-w-full bg-white border border-gray-300 rounded-lg shadow-lg">
+
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="w-12 h-12 border-4 border-dashed rounded-full animate-spin border-red-500"></div>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          {filteredData.length > 0 ? (
+            <div className="block md:hidden">
+              {/* Mobile View */}
+              {filteredData.map((ammo) => (
+                <div
+                  key={ammo.id}
+                  className="bg-white shadow-md rounded-lg p-4 mb-4 border border-gray-300"
+                >
+                  <h2 className="font-bold text-lg">{ammo.type}</h2>
+                  <p>Stock: {ammo.stock}</p>
+                  <p>Price: R {ammo.price}</p>
+                  <button
+                    onClick={() => handleEdit(ammo)}
+                    className={`mt-2 bg-red-500 text-white p-2 rounded-lg ${
+                      isUserSignedIn
+                        ? "hover:bg-stone-600 hover:scale-105"
+                        : "opacity-50 cursor-not-allowed"
+                    }`}
+                    disabled={!isUserSignedIn}
+                  >
+                    Edit
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-gray-500">No ammunition found.</p>
+          )}
+
+          <table className="min-w-full hidden md:table bg-white border border-gray-300 rounded-lg shadow-lg">
             <thead>
               <tr className="bg-gray-200 text-gray-700">
                 <th className="py-3 px-4 border-b">Type</th>
                 <th className="py-3 px-4 border-b">Stock</th>
                 <th className="py-3 px-4 border-b">Price</th>
+                <th className="py-3 px-4 border-b">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredData.map((ammo, index) => (
                 <tr
-                  key={index}
+                  key={ammo.id}
                   className={`text-gray-700 ${
-                    index % 2 === 0 ? 'bg-gray-50' : 'bg-white'
+                    index % 2 === 0 ? "bg-gray-50" : "bg-white"
                   }`}
                 >
                   <td className="py-3 px-4 border-b">{ammo.type}</td>
-                  <td className="py-3 px-4 border-b">{ammo.stock}</td>
+                  <td
+                    className={`py-3 px-4 border-b ${
+                      ammo.stock.toLowerCase() === "no stock"
+                        ? "text-red-700 font-semibold"
+                        : Number(ammo.stock) < 10
+                        ? "text-yellow-500 font-semibold"
+                        : ""
+                    }`}
+                  >
+                    {ammo.stock}
+                  </td>
+                  <td className="py-3 px-4 border-b">R {ammo.price}</td>
                   <td className="py-3 px-4 border-b">
-                    {formatCurrency(ammo.price)}
+                    <button
+                      onClick={() => handleEdit(ammo)}
+                      className={`text-red-500 p-2 rounded-lg ${
+                        isUserSignedIn
+                          ? "hover:underline"
+                          : "opacity-50 cursor-not-allowed"
+                      }`}
+                      disabled={!isUserSignedIn}
+                    >
+                      Edit
+                    </button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        ) : (
-          <p className="text-center text-gray-500">No ammunition found.</p>
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* Add New Ammunition Button */}
+      <button
+        onClick={() => {
+          setSelectedAmmo(null);
+          setIsModalOpen(true);
+        }}
+        className={`bg-red-500 text-white p-2 rounded-lg mt-4 transform transition-all duration-300 ease-in-out ${
+          isUserSignedIn
+            ? "hover:bg-stone-600 hover:scale-105 hover:opacity-90"
+            : "opacity-50 cursor-not-allowed"
+        }`}
+        disabled={!isUserSignedIn}
+      >
+        Add New Ammunition
+      </button>
+
+      {/* Modal for Adding/Editing Ammunition */}
+      <AmmunitionModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        ammunition={selectedAmmo}
+        onSubmit={handleSubmit}
+        isUserSignedIn={isUserSignedIn}
+      />
+
+      <ToastContainer />
     </div>
   );
 };

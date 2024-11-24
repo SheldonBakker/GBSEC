@@ -1,6 +1,5 @@
-import React from 'react';
-import Heroimage from './assets/GBSECHero.jpg';
-import CallButton from './CallButton'
+import React from "react";
+import Heroimage from "./assets/GBSECHero.jpg";
 
 const HeroSection: React.FC = () => {
   return (
@@ -27,8 +26,14 @@ const HeroSection: React.FC = () => {
           Your Trusted Security Partner
         </p>
         <div className="Call">
-      <CallButton />
-    </div>
+          <button
+            onClick={() => (window.location.href = "tel:+27218560214")}
+            aria-label="Call us at 021 856 0214"
+            className="bg-red-600 hover:bg-yellow-600 text-white font-semibold py-3 px-8 rounded-full transition-all transform hover:scale-105 hover:opacity-90 shadow-lg duration-300 ease-in-out"
+          >
+            Get in Touch with Us
+          </button>
+        </div>
       </div>
     </section>
   );
